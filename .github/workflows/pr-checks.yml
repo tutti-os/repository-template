@@ -1,0 +1,31 @@
+name: PR checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check conventional commit style PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|docs|test|refactor|perf|build|ci|chore|revert)(\([a-z0-9._-]+\))?: .+'
+          if ! printf '%s\n' "$PR_TITLE" | grep -Eq "$pattern"; then
+            echo "PR title must use conventional commit style."
+            echo
+            echo "Valid examples:"
+            echo "- feat: add webhook notification"
+            echo "- fix(cli): handle empty config"
+            echo "- docs: update contribution guide"
+            echo
+            echo "Current title:"
+            echo "$PR_TITLE"
+            exit 1
+          fi
